@@ -32,7 +32,9 @@ def clock_out():
     db.session.commit()
     return 'Successfully clocked out'
 
-@app.route('/history', methods=["GET", "POST"])
+# @app.route('/history', methods=["GET", "POST"])
+# def history():
+#     return 'history'
 
 if __name__ == "__main__":
     db.create_all()

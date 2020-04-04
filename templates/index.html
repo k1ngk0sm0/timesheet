@@ -1,20 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHDesigns</title>
-</head>
-<body>
-    <div id="clock_in">
-        <form action="/clock_in" method="POST">
-            <input type="submit" value="Clock In">
-        </form>
-    </div>
-    <div id="clock_out">
-        <form action="/clock_out" method="POST">
-            <input type="submit" value="CLock Out">
-        </form>
-    </div>
-</body>
-</html>
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block main %}
+<h1>Greetings, Charlie!</h1>
+{% endblock %}
