@@ -17,20 +17,28 @@ class Timesheet(db.Model):
 def index():
     return render_template("index.html")
     
-@app.route('/clock_in', methods=["GET", "POST"])
+@app.route('/clock_in')
 def clock_in():
+    """Clock in and add row to Timesheet table"""
     row = Timesheet(time_in=datetime.now())
     db.session.add(row)
     db.session.commit()
-    return 'Succesfully clocked in'
 
-@app.route('/clock_out', methods=["GET", "POST"])
+    # Return success message to user
+    time_in = row.time_in.strftime("%c")
+    return render_template('message.html', time=time_in, status="In")
+
+@app.route('/clock_out')
 def clock_out():
+    """Clock in and update current row of Timesheet table"""
     row = Timesheet.query.filter_by(hours=0.0).first()
     row.time_out = datetime.now()
     row.hours = ((row.time_out - row.time_in).total_seconds()) / 60 / 60
     db.session.commit()
-    return 'Successfully clocked out'
+
+    # Return success message to user
+    time_out = row.time_out.strftime("%c")
+    return render_template('message.html', time=time_out, status="Out")
 
 # @app.route('/history', methods=["GET", "POST"])
 # def history():
