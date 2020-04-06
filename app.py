@@ -9,6 +9,7 @@ db = SQLAlchemy(app)
 # Create table to store timesheets
 class Timesheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    pay_period = db.Column(db.Text)
     time_in = db.Column(db.DateTime)
     time_out = db.Column(db.DateTime, default=datetime.now())
     hours = db.Column(db.Float, default=0.0)
@@ -20,7 +21,7 @@ def index():
 @app.route('/clock_in')
 def clock_in():
     """Clock in and add row to Timesheet table"""
-    row = Timesheet(time_in=datetime.now())
+    row = Timesheet(time_in=datetime.now(), pay_period=datetime.now().strftime('%b %y'))
     db.session.add(row)
     db.session.commit()
 
@@ -40,9 +41,26 @@ def clock_out():
     time_out = row.time_out.strftime("%c")
     return render_template('message.html', time=time_out, status="Out")
 
-# @app.route('/history', methods=["GET", "POST"])
-# def history():
-#     return 'history'
+@app.route('/history', methods=["GET", "POST"])
+def history():
+    """Choose and display selected timesheet"""
+    if request.method == 'GET':
+        pay_periods = ['Apr 20']
+        for row in Timesheet.query.all():
+            if row.pay_period not in pay_periods:
+                pay_periods.append(row.pay_period)
+        return render_template('history.html', pay_periods=pay_periods)
+
+    else:
+        # total hours, pay and display pay period
+        pay_period = Timesheet.query.filter_by(pay_period=request.form.get('pay_period'))
+        total_hours = 0.0
+        for row in pay_period:
+            total_hours += row.hours
+            row.time_in = row.time_in.strftime('%I:%M %p')
+            row.time_out = row.time_out.strftime('%I:%M %p')
+        return render_template('pay_period.html', pay_period=pay_period)
+            
 
 if __name__ == "__main__":
     db.create_all()

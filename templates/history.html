@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Sell
+{% endblock %}
+
+{% block main %}
+    <form action="/history" method="post">
+        <div class="form-group">
+            <select class="form-control" name="pay_period">
+                <option disabled selected value="">Pay Period</option>
+                    {% for period in pay_periods %}
+                    <option value="{{ period }}">{{ period }}</option>
+                    {% endfor %}
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit">View Pay Period</button>
+    </form>
+{% endblock %}
