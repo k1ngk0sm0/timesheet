@@ -19,13 +19,16 @@ class Timesheet(db.Model):
 app.jinja_env.filters["usd"] = usd
 app.jinja_env.filters["f_format"] = f_format
 
-# Initialize clocked in variable
-clocked_in = False
+# Initialize clocked in variable from .txt file(0|1 bool)
+with open('clocked_in', 'r') as F:
+    clocked_in = bool(int(F.read()))
+
 
 @app.route('/')
 def index():
     return render_template("index.html")
-    
+
+
 @app.route('/clock_in')
 def clock_in():
     """Clock in and add row to Timesheet table"""
@@ -34,9 +37,14 @@ def clock_in():
         row = Timesheet(time_in=datetime.now(), pay_period=datetime.now().strftime('%b %y'))
         db.session.add(row)
         db.session.commit()
+
+        # Reset clocked_in variable
+        clocked_in = True
+        with open('clocked_in', 'w') as F:
+            F.write('1')
+
         # Return success message to user
         time_in = row.time_in.strftime("%c")
-        clocked_in = True
         return render_template('message.html', time=time_in, status="In")
 
     else:
@@ -55,6 +63,8 @@ def clock_out():
         # Change clocked_in status to False
         global clocked_in
         clocked_in = False
+        with open('clocked_in', 'w') as F:
+            F.write('0')
 
         # Return success message to user
         time_out = row.time_out.strftime("%c")
