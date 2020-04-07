@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from helpers import usd, f_format
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///payroll.db'
@@ -13,6 +14,10 @@ class Timesheet(db.Model):
     time_in = db.Column(db.DateTime)
     time_out = db.Column(db.DateTime, default=datetime.now())
     hours = db.Column(db.Float, default=0.0)
+
+# Custom filters
+app.jinja_env.filters["usd"] = usd
+app.jinja_env.filters["f_format"] = f_format
 
 @app.route('/')
 def index():
@@ -52,16 +57,22 @@ def history():
         return render_template('history.html', pay_periods=pay_periods)
 
     else:
-        # total hours, pay and display pay period
+        # Initialize total hours, rate and pay period
         pay_period = Timesheet.query.filter_by(pay_period=request.form.get('pay_period'))
         total_hours = 0.0
+        rate = 12.0
+        # Format pay period data for display and store in list of dicts
+        formatted = []
         for row in pay_period:
             total_hours += row.hours
-            row.time_in = row.time_in.strftime('%I:%M %p')
-            row.time_out = row.time_out.strftime('%I:%M %p')
-        return render_template('pay_period.html', pay_period=pay_period)
+            d = {}
+            d['date'] = row.time_in.strftime('%m/%d/%y')
+            d['time_in'] = row.time_in.strftime('%I:%M %p')
+            d['time_out'] = row.time_out.strftime('%I:%M %p')
+            d['hours'] = row.hours
+            formatted.append(d)
+        return render_template('pay_period.html', pay_period=formatted, total_hours=total_hours, rate=rate, pay=total_hours * rate)
             
 
 if __name__ == "__main__":
-    db.create_all()
-    app.run(debug=True)
+    app.run(debug=False)
