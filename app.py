@@ -19,6 +19,9 @@ class Timesheet(db.Model):
 app.jinja_env.filters["usd"] = usd
 app.jinja_env.filters["f_format"] = f_format
 
+# Initialize clocked in variable
+clocked_in = False
+
 @app.route('/')
 def index():
     return render_template("index.html")
@@ -26,25 +29,40 @@ def index():
 @app.route('/clock_in')
 def clock_in():
     """Clock in and add row to Timesheet table"""
-    row = Timesheet(time_in=datetime.now(), pay_period=datetime.now().strftime('%b %y'))
-    db.session.add(row)
-    db.session.commit()
+    global clocked_in
+    if not clocked_in:
+        row = Timesheet(time_in=datetime.now(), pay_period=datetime.now().strftime('%b %y'))
+        db.session.add(row)
+        db.session.commit()
+        # Return success message to user
+        time_in = row.time_in.strftime("%c")
+        clocked_in = True
+        return render_template('message.html', time=time_in, status="In")
 
-    # Return success message to user
-    time_in = row.time_in.strftime("%c")
-    return render_template('message.html', time=time_in, status="In")
+    else:
+        return 'You are already clocked in'
+
 
 @app.route('/clock_out')
 def clock_out():
     """Clock in and update current row of Timesheet table"""
-    row = Timesheet.query.filter_by(hours=0.0).first()
-    row.time_out = datetime.now()
-    row.hours = ((row.time_out - row.time_in).total_seconds()) / 60 / 60
-    db.session.commit()
+    try:
+        row = Timesheet.query.filter_by(hours=0.0).first()
+        row.time_out = datetime.now()
+        row.hours = ((row.time_out - row.time_in).total_seconds()) / 60 / 60
+        db.session.commit()
 
-    # Return success message to user
-    time_out = row.time_out.strftime("%c")
-    return render_template('message.html', time=time_out, status="Out")
+        # Change clocked_in status to False
+        global clocked_in
+        clocked_in = False
+
+        # Return success message to user
+        time_out = row.time_out.strftime("%c")
+        return render_template('message.html', time=time_out, status="Out")
+
+    except AttributeError:
+        return "You are not clocked in"
+
 
 @app.route('/history', methods=["GET", "POST"])
 def history():
@@ -75,4 +93,5 @@ def history():
             
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    db.create_all()
+    app.run(debug=True)
