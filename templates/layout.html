@@ -40,11 +40,14 @@
             </div>
         </nav>
 
-        {% if get_flashed_messages() %}
+        {% if get_flashed_messages(category_filter="info") %}
             <header>
-                <div class="alert alert-primary border text-center" role="alert">
-                    {{ get_flashed_messages() | join(" ") }}
-                </div>
+                <div class="alert alert-primary alert-dismissible fade show text-center" role="alert">
+                    {{ get_flashed_messages(category_filter="info") | join(" ")}}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
             </header>
         {% endif %}
 

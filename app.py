@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, flash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from helpers import usd, f_format
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///payroll.db'
+app.secret_key = 'hello'
+
+# Initialize db
 db = SQLAlchemy(app)
 
 # Create table to store timesheets
@@ -48,7 +51,8 @@ def clock_in():
         return render_template('message.html', time=time_in, status="In")
 
     else:
-        return 'You are already clocked in'
+        flash('You are arleady clocked in', 'info')
+        return render_template('index.html')
 
 
 @app.route('/clock_out')
@@ -71,7 +75,8 @@ def clock_out():
         return render_template('message.html', time=time_out, status="Out")
 
     except AttributeError:
-        return "You are not clocked in"
+        flash('You are already clocked out!', 'info')
+        return render_template('index.html')
 
 
 @app.route('/history', methods=["GET", "POST"])
